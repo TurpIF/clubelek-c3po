@@ -1,0 +1,67 @@
+div(style='margin-top:10px')
+
+//- Global controls
+.col-md-3
+  button.btn.btn-default
+    span.glyphicon.glyphicon-folder-open
+    | &nbsp;
+    | Load
+.col-md-offset-4.col-md-5
+  .progress
+    .progress-bar(style='width: 50%')
+      | 45 / 90s
+
+//- Main view (FIXME)
+.col-md-12
+  center(style='background-color:#ccc')
+    svg(height='500px', viewBox='0 0 3000 2000')
+      g(ng-repeat='bot in bots', ng-attr-transform='translate({{bot.properties[0].value[0]}}, {{bot.properties[0].value[1]}})')
+        rect(x='0', y='0', width='200', height='200')
+
+//- Bot controls
+.col-md-6(ng-repeat='bot in bots', ng-controller='BotCtrl', ng-init='initialize(bot)',
+          ng-style='{ true: { "border-left": "1px solid #4e5d6c" } }[$index % 2 == 1]')
+  h3
+    | Bot {{ bot.id }}
+    | 
+    small
+      span.glyphicon.glyphicon-info-sign(tooltip-placement="right", tooltip="Running at {{ bot.address }}")
+    .pull-right
+      button.btn.btn-success.active(toggle='button', ng-show='ai.running')
+        | Auto
+      button.btn.btn-danger(toggle='button', ng-show='!ai.running')
+        | Manual
+  hr
+  tabset(type='pills')
+    tab(heading='Properties')
+      form.form-horizontal
+        .form-group(ng-repeat='property in properties')
+          label.col-md-2
+            | {{ property.name }}
+            | 
+            small
+              | {{ property.type }}
+          .col-md-10
+            .row(ng-include='"/includes/properties/" + property.type + ".html"')
+    tab(heading='Simulators', ng-controller='SimulatorsCtrl')
+      ul.list-group
+        li.list-group-item(ng-repeat='(simulator, running) in simulators')
+          | {{ simulator }}
+          button.btn.btn-sm.btn-success.pull-right(ng-show='!running', ng-click='startSimulator(simulator)')
+            | Start
+          button.btn.btn-sm.btn-danger.pull-right(ng-show='running', ng-click='stopSimulator(simulator)')
+            | Stop
+    tab(heading='Settings', ng-controller='PollingCtrl')
+      form.form-horizontal
+        .form-group(ng-init='pollingRate = 1000; startPolling(pollingRate)')
+          label.col-md-2
+            | Polling rate (ms)
+          .col-md-6
+            input(type='number', ng-model='pollingRate', min='100', max='10000', ng-change='restartVisible = true')
+          .col-md-4
+            button.btn.btn-info(type='button', ng-click='restartPolling(pollingRate); restartVisible = false', ng-show='restartVisible')
+              | Restart polling
+            button.btn.btn-success(type='button', ng-click='startPolling(pollingRate)', ng-show='!polling && !restartVisible')
+              | Start polling
+            button.btn.btn-danger(type='button', ng-click='stopPolling()', ng-show='polling && !restartVisible')
+              | Stop polling
